@@ -40,6 +40,17 @@ for t in range(500):
     # Zero the gradients before running the backward pass.
     model.zero_grad()
     
+    '''
+    In PyTorch, we need to set the gradients to zero before starting to do backpropragation
+    because PyTorch accumulates the gradients on subsequent backward passes.
+    This is convenient while training RNNs.
+    So, the default action is to accumulate (i.e. sum) the gradients on every loss.backward() call.
+    Because of this, when you start your training loop,
+    ideally you should zero out the gradients so that you do the parameter update correctly.
+    Else the gradient would point in some other direction
+    than the intended direction towards the minimum (or maximum, in case of maximization objectives).
+    '''
+    
     # Backward pass: compute gradient of the loss with respect to all the learnable
     # parameters of the model. Internally, the parameters of each Module are stored
     # in Tensors with requires_grad=True, so this call will compute gradients for
@@ -49,5 +60,13 @@ for t in range(500):
     # Update the weights using gradient descent. Each parameter is a Tensor, so
     # we can access its gradients like we did before.
     with torch.no_grad():
+        # temporarily sets all require_grad to False
+        '''
+        To prevent tracking history (and using memory),
+        you can also wrap the code block in with torch.no_grad()
+        This can be particularly helpful when evaluating a model
+        because the model may have trainable parameters with requires_grad=True,
+        but for which we don’t need the gradients.
+        '''
         for param in model.parameters():
             param -= learning_rate * param.grad
